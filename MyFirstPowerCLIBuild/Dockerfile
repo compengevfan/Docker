@@ -1,0 +1,2 @@
+FROM vmware/powerclicore
+
