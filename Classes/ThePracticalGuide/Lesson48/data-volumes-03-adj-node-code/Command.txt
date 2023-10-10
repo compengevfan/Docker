@@ -1,5 +1,17 @@
 docker build -t feedback-node:volumes .
 
+Anonymous volume
+docker run -d -p 3000:80 --rm --name feedback-app -v /app/feedback feedback-node:volumes
+
+Named Volumes for storing data that persists when the container is deleted.
 docker run -d -p 3000:80 --rm --name feedback-app -v feedback:/app/feedback feedback-node:volumes
 
+Bind Mounts:
 docker run -d -p 3000:80 --rm --name feedback-app -v feedback:/app/feedback -v "C:\git\Docker\Classes\ThePracticalGuide\Lesson48\data-volumes-03-adj-node-code:/app" feedback-node:volumes
+    This fails because the mount is doing something it shouldn't be doing.
+
+Include an anonymous volume to fix the problem.
+docker run -d -p 3000:80 --rm --name feedback-app -v feedback:/app/feedback -v "C:\git\Docker\Classes\ThePracticalGuide\Lesson48\data-volumes-03-adj-node-code:/app" -v /app/node_modules feedback-node:volumes
+    Note: Docker evaluates all volumes and longer internal path wins. so "/app/node_modules" will not get overwritten by "/app"
+    "node_modules" is created by "npm install"
+    With this, if you change feedback.html, the changes show up in the container without the need to rebuild the image.
