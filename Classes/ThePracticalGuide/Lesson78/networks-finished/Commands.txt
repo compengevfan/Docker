@@ -1,0 +1,14 @@
+#create a shared network
+docker network create favorites-net
+
+#inspect docker networks
+docker network ls
+
+#start a mongodb container in a specific shared network
+docker run -d --name mongodb --network favorites-net mongo
+
+#create an image
+docker build -t favorites-node .
+
+#run the application container in the same shared network
+docker run --name favorites --network favorites-net -d --rm -p 3000:3000 favorites-node
