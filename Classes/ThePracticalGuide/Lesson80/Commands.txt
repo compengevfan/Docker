@@ -1,0 +1,50 @@
+#MongoDB container and save the data
+docker run --name mongodb --rm -d -p 27017:27017 mongo
+
+#Dockerize the backend in the "backend" folder
+#Change mongoDB connection string to connect to localhost (host.docker.internal) instead of container address
+docker build -t goals-node .
+docker run --name goals-backend --rm -d -p 80:80 goals-node
+
+#Dockerize the frontend in the "frontend" folder
+docker build -t goals-react .
+docker run --name goals-frontend --rm -p 3000:3000 -it goals-react
+
+##Convert to using container to container communication
+#Create network
+docker network create goals-net
+
+docker run --name mongodb --rm -d --network goals-net mongo
+
+#Need to update mongodb connection string from host.docker.internal to the mongodb container "mongodb" in app.js
+docker build -t goals-node .
+docker run --name goals-backend --rm -d --network goals-net goals-node
+
+#Need to update "localhost" to "goals-backend"
+docker build -t goals-react .
+docker run --name goals-frontend --network goals-net --rm -p 3000:3000 -it goals-react
+
+#Turns out "react" code runs in the browser not in the container so the browser doesn't know what "goals-backend" is :(
+#Switch "goals-backend" back to "localhost"
+docker build -t goals-react .
+#and we still need to publish port 80 from the backend
+#Stop backend and restart with port 80 published
+docker run --name goals-backend --rm -d -p 80:80 --network goals-net goals-node
+
+docker run --name goals-frontend --rm -p 3000:3000 -it goals-react
+
+##Make DB data persist with named volume
+#Check mongoDB image documentation for volume mapping location
+docker run --name mongodb -v data:/data/db --rm -d --network goals-net mongo
+docker run --name goals-backend --rm -d -p 80:80 --network goals-net goals-node
+docker run --name goals-frontend --rm -p 3000:3000 -it goals-react
+
+##Make data from "Backend" persist.
+docker run --name mongodb -v data:/data/db --rm -d --network goals-net mongo
+#use a bind mount to include a volume so code will update automatically (first "-v")
+#use a named volume for the /app/logs, a bind mount can work so you can read the files easily on the host machine (second "-v")
+docker run --name goals-backend -v C:\git\Docker\Classes\ThePracticalGuide\Lesson80\multi-01-starting-setup\backend:/app -v logs:/app/logs -v /app/node_modules --rm -d -p 80:80 --network goals-net goals-node
+docker run --name goals-frontend --rm -p 3000:3000 -it goals-react
+#you will have to add a dependency (nodemon) to get the node application to restart when the code is changed. Blah
+
+##Frontend live code updates is just uses a bind mount. react already configured to restart due to changes
