@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+    #List of containers that will automatically get put into a network so no need to add "networks" section but you can
+    mongodb: 
+        image: "mongo"
+        volumes: 
+            - data:/data/db
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: max
+            MONGO_INITDB_ROOT_PASSWORD: secret
+            #- MONGO_INITDB_ROOT_USERNAME=max (you can do key pairs like above or equals like this)
+    backend: 
+        build: ./backend
+        ports: 
+            - "80:80"
+        volumes: 
+            - logs:/app/logs #named
+            - ./backend:/app #bind mount
+            - /app/node_modules #anonymous
+        environment: 
+            MONGODB_USERNAME: max
+            MONGODB_PASSWORD: secret
+        depends_on: 
+            - mongodb #depends on the first container
+    frontend: 
+        build: ./frontend
+        ports: 
+            - "3000:3000"
+        volumes: 
+            - ./frontend/src:/app/src
+        stdin_open: true #required for interactive mode
+        tty: true #also required for interactive mode
+        depends_on:
+            - backend
+
+#List of named volumes in all services. if the same name is used, the volume will be shared
+volumes:
+    data:
+    logs:

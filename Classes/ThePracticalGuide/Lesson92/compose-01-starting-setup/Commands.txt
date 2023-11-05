@@ -1,0 +1,4 @@
+#Run the docker compose file in detached mode
+docker-compose up -d
+
+docker-compose down
