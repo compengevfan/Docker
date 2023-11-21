@@ -1,0 +1,8 @@
+# Run Docker image in interactive and detached mode. It will be waiting for input.
+docker run -it -d [image]
+
+# connect to container terminal
+docker container attach [container name]
+
+#execute command in a container
+docker exec -it [conatiner name] [command]
